@@ -1,0 +1,32 @@
+/* Small */
+@media (min-width: 768px) {
+  .container {
+    width: 750px;
+  }
+}
+/* Medium */
+@media (min-width: 992px) {
+  .container {
+    width: 970px;
+  }
+}
+@media(max-width:992px)
+{  
+  .form{
+     background-image: 
+      linear-gradient(rgba(255,255,255,0.8) 0%,rgba(255,255,255,0.8) 100%),
+      url('../images/bailey-zindel-NRQV-hBF10M-unsplash.jpg');
+  }
+  .custom-form{
+    width: 100%;
+  }
+  .form-control input{
+    width: 100%;
+  }
+}
+/* Large */
+@media (min-width: 1200px) {
+  .container {
+    width: 1170px;
+  }
+}
