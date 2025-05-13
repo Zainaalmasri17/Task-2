@@ -6,6 +6,7 @@ import './CSS/components/buttons.css';
 import './CSS/components/alerts.css';
 import './CSS/components/form.css';
 import './CSS/media.css';
+import 'bootstrap/dist/css/bootstrap.min.css';
 import App from './App';
 import { BrowserRouter as Router } from 'react-router-dom';
 
