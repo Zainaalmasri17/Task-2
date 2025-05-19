@@ -6,6 +6,9 @@ import Register from './Pages/Website/Register';
 import Home from './Pages/Dashboard/Homepage';
 import Showusers from './Pages/Dashboard/User';
 import DisplayUsers from './Pages/Dashboard/Userinfo';
+import ShowProducts from './Pages/Dashboard/products';
+import ProductDetails from './Pages/Dashboard/ProductDetails';
+
 
 
 function App() {
@@ -17,6 +20,8 @@ function App() {
     <Route path='/register' element={<Register/>}></Route>
     <Route path='/users' element={<Showusers/>}></Route>
     <Route path='users/:id'element={<DisplayUsers/>}></Route>
+        <Route path='/products' element={<ShowProducts />}></Route>
+        <Route path='product/:id' element={<ProductDetails/>}></Route>
    </Routes>
     </div>
   );
