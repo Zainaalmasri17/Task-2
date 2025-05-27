@@ -1,41 +1,12 @@
-*{
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* If you need custom styles, add them below */
+* {
   box-sizing: border-box;
 }
-body{
+
+body {
   font-family: "Work Sans", sans-serif;
-}
-.container {
- margin: 0 auto;
-}
-.h-100{
-  height: 100vh;
- }
- .row{
-  display: flex;
-  justify-content: center;
-  align-items: center;
- }
- .row .col-12{
-  width: 100%;
- }
- .row .col-6{
-  width: 50%;
- }
-/* Small */
-@media (min-width: 768px) {
-  .container {
-    width: 750px;
-  }
-}
-/* Medium */
-@media (min-width: 992px) {
-  .container {
-    width: 970px;
-  }
-}
-/* Large */
-@media (min-width: 1200px) {
-  .container {
-    width: 1170px;
-  }
 }
