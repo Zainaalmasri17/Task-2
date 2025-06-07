@@ -6,11 +6,11 @@ export default function ShowArticles() {
     const [articles, setArticles] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
+    const [favorites, setFavorites] = useState(JSON.parse(localStorage.getItem("favorites")) || []);
 
     useEffect(() => {
         const fetchData = async () => {
             setLoading(true);
-
             try {
                 const postsResponse = await axios.get("https://jsonplaceholder.typicode.com/posts");
                 const authorsResponse = await axios.get("https://jsonplaceholder.typicode.com/users");
@@ -37,15 +37,19 @@ export default function ShowArticles() {
         fetchData();
     }, []);
 
-    const filteredArticles = articles.filter(article =>
-        article.title.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const handleFavorite = (article) => {
+        let updatedFavorites = favorites.some((fav) => fav.id === article.id)
+            ? favorites.filter((fav) => fav.id !== article.id) // Remove if exists
+            : [...favorites, article]; // Add if not exists
+
+        setFavorites(updatedFavorites);
+        localStorage.setItem("favorites", JSON.stringify(updatedFavorites));
+    };
 
     return (
         <div className="p-6 bg-gray-100 min-h-screen">
             <h1 className="text-4xl font-bold text-center mb-6 text-gray-900">📚 Blog Articles</h1>
 
-            {/* Search Bar */}
             <input 
                 type="text" 
                 placeholder="🔍 ابحث عن مقال..." 
@@ -54,7 +58,6 @@ export default function ShowArticles() {
                 className="w-full p-3 mb-6 border rounded-md focus:ring-2 focus:ring-blue-500"
             />
 
-            {/* Loading State (Skeleton Loader) */}
             {loading ? (
                 <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
                     {[...Array(6)].map((_, index) => (
@@ -63,19 +66,23 @@ export default function ShowArticles() {
                 </div>
             ) : (
                 <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-                    {filteredArticles.length > 0 ? (
-                        filteredArticles.map(article => (
-                            <Link key={article.id} to={`/article/${article.id}`} className="block no-underline">
-                                <div className="bg-white shadow-md rounded-lg p-6 hover:shadow-2xl hover:-translate-y-1 transition-transform duration-300">
+                    {articles.filter(article => article.title.toLowerCase().includes(searchQuery.toLowerCase()))
+                        .map(article => (
+                            <div key={article.id} className="bg-white shadow-md rounded-lg p-6 hover:shadow-2xl hover:-translate-y-1 transition-transform duration-300">
+                                <Link to={`/article/${article.id}`} className="block no-underline">
                                     <h2 className="text-2xl font-semibold text-gray-900 leading-tight">📖 {article.title}</h2>
                                     <p className="text-gray-600 mt-2">{article.excerpt} ⏳</p>
                                     <p className="text-blue-500 text-sm mt-3">✍️ By: {article.authorName}</p>
-                                </div>
-                            </Link>
+                                </Link>
+                                <button 
+                                    onClick={() => handleFavorite(article)}
+                                    className={`text-xl mt-3 transition ${favorites.some((fav) => fav.id === article.id) ? "text-yellow-500" : "text-gray-400"}`}
+                                >
+                                    ⭐️
+                                </button>
+                            </div>
                         ))
-                    ) : (
-                        <p className="text-center text-gray-500 text-lg">🚫 لا توجد نتائج مطابقة للبحث.</p>
-                    )}
+                    }
                 </div>
             )}
         </div>
