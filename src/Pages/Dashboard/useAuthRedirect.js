@@ -1,14 +1,17 @@
-import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 
 export default function useAuthRedirect() {
-    const navigate = useNavigate();
-    const userEmail = localStorage.getItem("userEmail");
+  const navigate = useNavigate();
 
-    useEffect(() => {
-        if (!userEmail) {
-            sessionStorage.setItem("unauthorizedAccess", "true"); // ✅ Store flag before redirect
-            navigate("/login", { replace: true }); // ✅ Redirect immediately
-        }
-    }, [userEmail, navigate]);
+  // ✅ نحصل على userEmail من localStorage عبر react-query
+  const { data: userEmail } = useQuery({
+    queryKey: ["userEmail"],
+    queryFn: () => localStorage.getItem("userEmail"),
+  });
+
+  if (!userEmail) {
+    sessionStorage.setItem("unauthorizedAccess", "true");
+    navigate("/login", { replace: true });
+  }
 }

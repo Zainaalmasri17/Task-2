@@ -1,90 +1,156 @@
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
+import { useState } from "react";
 import { Link } from "react-router-dom";
+import usePostStore from "../../Store/Poststore";
+import { formatDistanceToNow } from "date-fns";
+import { ar } from "date-fns/locale";
 
-export default function ShowArticles() {
-    const [articles, setArticles] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [searchQuery, setSearchQuery] = useState("");
-    const [favorites, setFavorites] = useState(JSON.parse(localStorage.getItem("favorites")) || []);
+export default function Articles() {
+  const { posts: localPosts } = usePostStore();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [favorites, setFavorites] = useState(JSON.parse(localStorage.getItem("favorites")) || []);
+  const [filter, setFilter] = useState("all");
+  const [sort, setSort] = useState("newest");
 
-    useEffect(() => {
-        const fetchData = async () => {
-            setLoading(true);
-            try {
-                const postsResponse = await axios.get("https://jsonplaceholder.typicode.com/posts");
-                const authorsResponse = await axios.get("https://jsonplaceholder.typicode.com/users");
+  const { data: remotePosts = [], isLoading, error } = useQuery({
+    queryKey: ["articles"],
+    queryFn: async () => {
+      const postRes = await axios.get("https://jsonplaceholder.typicode.com/posts");
+      const userRes = await axios.get("https://jsonplaceholder.typicode.com/users");
 
-                const authorsMap = {};
-                authorsResponse.data.forEach(author => {
-                    authorsMap[author.id] = author.name;
-                });
+      const authorMap = {};
+      userRes.data.forEach((u) => {
+        authorMap[u.id] = u.name;
+      });
 
-                const mergedArticles = postsResponse.data.slice(0, 10).map(article => ({
-                    ...article,
-                    authorName: authorsMap[article.userId] || "Unknown",
-                    excerpt: article.body.length > 150 ? article.body.substring(0, 150) + "..." : article.body
-                }));
+      return postRes.data.slice(0, 10).map((post) => {
+        const daysAgo = Math.floor(Math.random() * 30);
+        const date = new Date();
+        date.setDate(date.getDate() - daysAgo);
 
-                setArticles(mergedArticles);
-            } catch (error) {
-                console.error("Error fetching data:", error);
-            } finally {
-                setLoading(false);
-            }
+        return {
+          id: post.id,
+          title: post.title,
+          body: post.body,
+          authorName: authorMap[post.userId] || "مجهول",
+          category: "misc",
+          createdAt: date.toISOString(),
+          excerpt: post.body.substring(0, 150) + "...",
         };
+      });
+    },
+  });
 
-        fetchData();
-    }, []);
+  const articles = [...localPosts, ...remotePosts];
 
-    const handleFavorite = (article) => {
-        let updatedFavorites = favorites.some((fav) => fav.id === article.id)
-            ? favorites.filter((fav) => fav.id !== article.id) // Remove if exists
-            : [...favorites, article]; // Add if not exists
+  const handleFavorite = (article) => {
+    const updated = favorites.some((f) => f.id === article.id)
+      ? favorites.filter((f) => f.id !== article.id)
+      : [...favorites, article];
 
-        setFavorites(updatedFavorites);
-        localStorage.setItem("favorites", JSON.stringify(updatedFavorites));
-    };
+    setFavorites(updated);
+    localStorage.setItem("favorites", JSON.stringify(updated));
+  };
 
-    return (
-        <div className="p-6 bg-gray-100 min-h-screen">
-            <h1 className="text-4xl font-bold text-center mb-6 text-gray-900">📚 Blog Articles</h1>
+  const filtered = articles.filter((article) => {
+    const matchSearch = article.title.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchCategory = filter === "all" || article.category === filter;
+    return matchSearch && matchCategory;
+  });
 
-            <input 
-                type="text" 
-                placeholder="🔍 ابحث عن مقال..." 
-                value={searchQuery} 
-                onChange={(e) => setSearchQuery(e.target.value)} 
-                className="w-full p-3 mb-6 border rounded-md focus:ring-2 focus:ring-blue-500"
-            />
+  const sorted = [...filtered].sort((a, b) => {
+    if (sort === "newest") return new Date(b.createdAt) - new Date(a.createdAt);
+    if (sort === "oldest") return new Date(a.createdAt) - new Date(b.createdAt);
+    if (sort === "alpha") return a.title.localeCompare(b.title);
+    return 0;
+  });
 
-            {loading ? (
-                <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-                    {[...Array(6)].map((_, index) => (
-                        <div key={index} className="bg-gray-300 h-32 rounded-lg animate-pulse"></div>
-                    ))}
-                </div>
-            ) : (
-                <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-                    {articles.filter(article => article.title.toLowerCase().includes(searchQuery.toLowerCase()))
-                        .map(article => (
-                            <div key={article.id} className="bg-white shadow-md rounded-lg p-6 hover:shadow-2xl hover:-translate-y-1 transition-transform duration-300">
-                                <Link to={`/article/${article.id}`} className="block no-underline">
-                                    <h2 className="text-2xl font-semibold text-gray-900 leading-tight">📖 {article.title}</h2>
-                                    <p className="text-gray-600 mt-2">{article.excerpt} ⏳</p>
-                                    <p className="text-blue-500 text-sm mt-3">✍️ By: {article.authorName}</p>
-                                </Link>
-                                <button 
-                                    onClick={() => handleFavorite(article)}
-                                    className={`text-xl mt-3 transition ${favorites.some((fav) => fav.id === article.id) ? "text-yellow-500" : "text-gray-400"}`}
-                                >
-                                    ⭐️
-                                </button>
-                            </div>
-                        ))
-                    }
-                </div>
-            )}
+  return (
+    <div className="p-6 min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-100 transition-colors duration-300">
+      <h1 className="text-4xl font-bold text-center mb-6">📚 جميع المقالات</h1>
+
+      {/* الفلاتر */}
+      <div className="flex flex-wrap gap-4 justify-center mb-6">
+        <input
+          type="text"
+          placeholder="🔍 ابحث عن مقال..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full md:w-80 p-3 border rounded-md bg-white dark:bg-gray-800 dark:text-white"
+        />
+
+        <select
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+          className="p-3 border rounded-md bg-white dark:bg-gray-800 dark:text-white"
+        >
+          <option value="all">كل التصنيفات</option>
+          <option value="tech">تقني</option>
+          <option value="news">أخبار</option>
+          <option value="culture">ثقافة</option>
+          <option value="sports">رياضة</option>
+        </select>
+
+        <select
+          value={sort}
+          onChange={(e) => setSort(e.target.value)}
+          className="p-3 border rounded-md bg-white dark:bg-gray-800 dark:text-white"
+        >
+          <option value="newest">الأحدث</option>
+          <option value="oldest">الأقدم</option>
+          <option value="alpha">أبجديًا</option>
+        </select>
+      </div>
+
+      {/* عرض النتائج */}
+      {isLoading ? (
+        <p className="text-center text-gray-500">⏳ جارٍ تحميل المقالات...</p>
+      ) : error ? (
+        <p className="text-center text-red-500">❌ حدث خطأ أثناء تحميل المقالات.</p>
+      ) : sorted.length === 0 ? (
+        <p className="text-center text-gray-500 text-lg">🚫 لا توجد مقالات مطابقة.</p>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {sorted.map((article) => {
+            const createdDate = new Date(article.createdAt);
+            const isValidDate = !isNaN(createdDate);
+
+            return (
+              <div
+                key={article.id}
+                className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md hover:shadow-xl transition"
+              >
+                <Link to={`/article/${article.id}`} className="block hover:text-blue-500">
+                  <h2 className="text-2xl font-semibold">{article.title}</h2>
+                </Link>
+
+                <p className="text-gray-600 dark:text-gray-300 mt-2">
+                  {article.excerpt || article.body.slice(0, 150)}
+                </p>
+
+                <p className="text-sm text-blue-500 mt-3">
+                  ✍️ {article.authorName || article.author || "أنت"} | 🗂 {article.category}
+                </p>
+                <p className="text-sm text-gray-500">
+                  🕓 {isValidDate ? `منذ ${formatDistanceToNow(createdDate, { locale: ar })}` : "تاريخ غير معروف"}
+                </p>
+
+                <button
+                  onClick={() => handleFavorite(article)}
+                  className={`mt-3 text-xl transition ${
+                    favorites.some((f) => f.id === article.id)
+                      ? "text-yellow-500"
+                      : "text-gray-400"
+                  }`}
+                >
+                  ⭐️
+                </button>
+              </div>
+            );
+          })}
         </div>
-    );
+      )}
+    </div>
+  );
 }

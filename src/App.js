@@ -1,4 +1,6 @@
 import { Routes, Route } from 'react-router-dom';
+
+
 import Login from './Pages/Website/Login';
 import Register from './Pages/Website/Register';
 import Home from './Pages/Dashboard/Homepage';
@@ -12,11 +14,19 @@ import Loginpage from './Pages/Dashboard/Loginpage';
 import Favorites from './Pages/Dashboard/Favorites';
 import Profile from './Pages/Dashboard/Profile';
 import NotFound from './Pages/Dashboard/NotFound';
+import CreatePost from './Pages/Dashboard/CreatePost';
+import Dashboard from './Pages/Dashboard/Dashboard';
+import EditPost from './Pages/Dashboard/EditPost';
+import MainLayout from './Pages/Dashboard/Mainlayout';
+import useTheme from './Pages/Dashboard/Usetheme';
 
 export default function App() {
+  useTheme(); // 🌓 apply theme globally
+
   return (
-    <div className="App min-h-screen bg-gray-100 flex flex-col">
+    <MainLayout>
       <Routes>
+        {/* Public Pages */}
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
@@ -24,15 +34,20 @@ export default function App() {
         <Route path="/users/:id" element={<DisplayUsers />} />
         <Route path="/products" element={<ShowProducts />} />
         <Route path="/product/:id" element={<ProductDetails />} />
-        {/*      TASK 5 AND 6           */}
-        <Route path='/loginpage' element={<Loginpage />} />
-        <Route path='/profile' element={<Profile/>}/>
+
+        {/* Blog / Task Pages */}
+        <Route path="/loginpage" element={<Loginpage />} />
+        <Route path="/profile" element={<Profile />} />
         <Route path="/articles" element={<ShowArticles />} />
-        <Route path='/article/:id' element={<ArticleDetails />} />
-        <Route path='/favorites' element={<Favorites />} />
-         {/* ✅ صفحة 404 للمسارات غير الصحيحة */}
-         <Route path="*" element={<NotFound />} />
-       </Routes>
-    </div>
+        <Route path="/article/:id" element={<ArticleDetails />} />
+        <Route path="/favorites" element={<Favorites />} />
+        <Route path="/create" element={<CreatePost />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/edit/:id" element={<EditPost />} />
+
+        {/* 404 fallback */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </MainLayout>
   );
 }

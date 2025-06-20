@@ -6,3 +6,9 @@ module.exports = {
   },
   plugins: [],
 };
+module.exports = {
+  darkMode: 'class', // ← مهم: تفعيل الوضع الداكن باستخدام class
+  content: ['./src/**/*.{js,jsx,ts,tsx}'],
+  theme: { extend: {} },
+  plugins: [],
+}
