@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import usePostStore from "../../Store/Poststore";
 import { formatDistanceToNow } from "date-fns";
 import { ar } from "date-fns/locale";
+import ReactionButtons from "./ReactionButtons";
 
 export default function Articles() {
   const { posts: localPosts } = usePostStore();
@@ -24,6 +25,8 @@ export default function Articles() {
         authorMap[u.id] = u.name;
       });
 
+      const categories = ["tech", "news", "culture", "sports"];
+
       return postRes.data.slice(0, 10).map((post) => {
         const daysAgo = Math.floor(Math.random() * 30);
         const date = new Date();
@@ -34,7 +37,7 @@ export default function Articles() {
           title: post.title,
           body: post.body,
           authorName: authorMap[post.userId] || "مجهول",
-          category: "misc",
+          category: categories[Math.floor(Math.random() * categories.length)], // ✅ تصنيفات متنوعة
           createdAt: date.toISOString(),
           excerpt: post.body.substring(0, 150) + "...",
         };
@@ -103,7 +106,7 @@ export default function Articles() {
         </select>
       </div>
 
-      {/* عرض النتائج */}
+      {/* عرض المقالات */}
       {isLoading ? (
         <p className="text-center text-gray-500">⏳ جارٍ تحميل المقالات...</p>
       ) : error ? (
@@ -135,6 +138,8 @@ export default function Articles() {
                 <p className="text-sm text-gray-500">
                   🕓 {isValidDate ? `منذ ${formatDistanceToNow(createdDate, { locale: ar })}` : "تاريخ غير معروف"}
                 </p>
+
+                <ReactionButtons targetId={article.id} targetType="article" />
 
                 <button
                   onClick={() => handleFavorite(article)}

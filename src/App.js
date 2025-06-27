@@ -19,6 +19,9 @@ import Dashboard from './Pages/Dashboard/Dashboard';
 import EditPost from './Pages/Dashboard/EditPost';
 import MainLayout from './Pages/Dashboard/Mainlayout';
 import useTheme from './Pages/Dashboard/Usetheme';
+import Notifications from './Pages/Dashboard/Notifications';
+import AdminUsers from './Pages/Dashboard/AdminUsers';
+import AdminReports from './Pages/Dashboard/AdminReports';
 
 export default function App() {
   useTheme(); // 🌓 apply theme globally
@@ -44,7 +47,9 @@ export default function App() {
         <Route path="/create" element={<CreatePost />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/edit/:id" element={<EditPost />} />
-
+        <Route path='/notifications' element={<Notifications />} />
+        <Route path='/admin/users' element={<AdminUsers />} />
+        <Route path='/admin/reports' elemnt={<AdminReports/>}/>
         {/* 404 fallback */}
         <Route path="*" element={<NotFound />} />
       </Routes>

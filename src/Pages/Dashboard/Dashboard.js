@@ -5,6 +5,7 @@ import { useState } from "react";
 import usePostStore from "../../Store/Poststore";
 import useTheme from "./Usetheme";
 
+
 import {
   PieChart,
   Pie,
@@ -13,39 +14,31 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import useCommentStore from "../../Store/ComStore";
 
 export default function Dashboard() {
   const userEmail = localStorage.getItem("userEmail");
   const { posts, deletePost } = usePostStore();
   const { theme, toggleTheme } = useTheme();
+  const { countCommentsByUser } = useCommentStore(); // ⬅️ استدعاء الدالة من store
 
   const userPosts = posts.filter((post) => post.author === userEmail);
 
-  // ✅ جلب المفضلة
   const { data: favorites = [] } = useQuery({
     queryKey: ["favorites"],
     queryFn: () => JSON.parse(localStorage.getItem("favorites")) || [],
   });
 
-  // ✅ جلب عدد التعليقات المرتبط بمستخدم معيّن
   const { data: commentCount = 0 } = useQuery({
-    queryKey: ["comments", userEmail, posts],
-    queryFn: () => {
-      let total = 0;
-      posts.forEach((post) => {
-        const comments =
-          JSON.parse(localStorage.getItem(`${userEmail}-comments-${post.id}`)) || [];
-        total += comments.length;
-      });
-      return total;
-    },
+    queryKey: ["commentsCount", userEmail],
+    queryFn: () => countCommentsByUser(userEmail),
   });
 
-  // ✅ تحليل التصنيفات للرسم البياني
   const categoryDistribution = userPosts.reduce((acc, post) => {
     acc[post.category] = (acc[post.category] || 0) + 1;
     return acc;
   }, {});
+
   const chartData = Object.entries(categoryDistribution).map(([name, value]) => ({
     name,
     value,
@@ -112,7 +105,7 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* كروت المقالات */}
+        {/* مقالات المستخدم */}
         <div>
           <h2 className="text-2xl font-bold mb-4">📄 مقالاتك</h2>
           {userPosts.length === 0 ? (
